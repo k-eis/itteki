@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>itteki｜クリエイターの言葉</title>
+<style>
+/* ラムスの10か条に沿う: 有用 / 理解しやすい / 控えめ / 誠実 / 細部まで / 可能な限り少なく */
+:root{--bg:#e3e4e1;--ink:#202123;--sub:#7d7e7a;--line:#202123;--accent:#e8541a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171818;--ink:#e4e5e2;--sub:#7f807c;--line:#e4e5e2}}
+:root[data-theme="dark"]{--bg:#171818;--ink:#e4e5e2;--sub:#7f807c;--line:#e4e5e2}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
+  font-family:"Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+main{position:relative;height:100%;display:grid;grid-template-rows:auto 1fr;padding:22px 8vw 0;box-sizing:border-box;pointer-events:none}
+header{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.08em;color:var(--sub)}
+.hint{display:grid;place-content:center;justify-items:center;gap:14px;transition:opacity .8s ease}
+.hint i{width:12px;height:12px;border-radius:50%;background:var(--accent);display:block}
+.hint span{font-size:12px;letter-spacing:.12em;color:var(--sub)}
+.hint.off{opacity:0}
+article{position:fixed;left:0;top:0;visibility:hidden;width:max-content;max-width:min(22em,84vw);
+  font-size:clamp(20px,5.4vw,32px);pointer-events:none}
+#q{margin:0;font-size:1em;font-weight:300;line-height:1.75;letter-spacing:.04em;
+  word-break:auto-phrase;line-break:strict;text-wrap:pretty}
+.meta{margin-top:1.6em;display:grid;gap:.45em;font-size:16px}
+.meta p{margin:0}
+#who{font-size:14px;letter-spacing:.06em}
+#src,#cf{font-size:12px;letter-spacing:.06em;color:var(--sub);line-height:1.6}
+#cf b{display:inline-block;width:7px;height:7px;margin-right:.7em;border:1px solid var(--sub);box-sizing:border-box;vertical-align:.05em}
+#cf b.hi{background:var(--sub)}
+#cf b.mid{background:linear-gradient(to top,var(--sub) 50%,transparent 50%)}
+.fade{opacity:0;transition:opacity 1.6s cubic-bezier(.2,.6,.2,1)}
+.meta.fade{transition-delay:.5s}
+.fade.on{opacity:1}
+/* 水の中へ沈む */
+@keyframes sink{0%{opacity:1;transform:translateY(0);filter:blur(0)}100%{opacity:0;transform:translateY(30px);filter:blur(9px)}}
+@keyframes soft{to{opacity:0}}
+article.sink{animation:sink 3.6s cubic-bezier(.45,0,.85,.4) forwards}
+@media (prefers-reduced-motion:reduce){.fade,.hint{transition:none}.meta.fade{transition-delay:0s}article.sink{animation:soft 1.2s forwards}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+<main>
+  <header><span>itteki</span><span id="date"></span></header>
+  <div class="hint" id="hint"><i></i><span>水面に触れる</span></div>
+</main>
+<article id="art" aria-live="polite">
+  <p id="q" class="fade"></p>
+  <div class="meta fade" id="meta">
+    <p id="who"></p>
+    <p id="src"></p>
+    <p id="cf"></p>
+  </div>
+</article>
+<script>
+// s: 2 = 出典の確からしさ「高」 / 1 = 「中」(原典での確認が必要) / 0 = 「低」
+const Q=[
+{t:"形態は、つねに機能に従う",p:"ルイス・サリヴァン",o:"『The Tall Office Building Artistically Considered』（1896）",s:2},
+{t:"良いデザインとは、できる限りデザインしないこと",p:"ディーター・ラムス",o:"「良いデザインの10か条」",s:2},
+{t:"少ないほうが豊かである",p:"ミース・ファン・デル・ローエ",o:"出典は要確認",s:1},
+{t:"レンガに聞いてみる。何になりたい？ レンガは「アーチがいい」と答える",p:"ルイス・カーン",o:"講演での言葉とされる",s:1},
+{t:"複雑にするのは簡単だ。単純にするのは難しい",p:"ブルーノ・ムナーリ",o:"著作は要確認",s:1},
+{t:"ディテールはディテールではない。それが製品をつくる",p:"チャールズ・イームズ",o:"インタビューでの発言とされる",s:1},
+{t:"単純さは目的ではない。だが事物の本質に近づけば、人は自然と単純さに行き着く",p:"コンスタンティン・ブランクーシ",o:"出典は要確認",s:1},
+{t:"デザインとは、生活を豊かにする知恵と、それを形にしたもの",p:"深澤直人",o:"イベントへのメッセージ（要確認）",s:0},
+{t:"芸術は、見えるものを写すのではない。見えるようにするのだ",p:"パウル・クレー",o:"「創造的信条」（1920）",s:2},
+{t:"私は、どんな空っぽの空間でも、裸の舞台と呼ぶことができる",p:"ピーター・ブルック",o:"『何もない空間』（1968）の冒頭",s:2},
+{t:"秘すれば花なり",p:"世阿弥",o:"『風姿花伝』",s:2},
+{t:"間違いを、隠された意図として敬え",p:"ブライアン・イーノ＆ピーター・シュミット",o:"『Oblique Strategies』（1975）の1枚",s:2},
+{t:"沈黙というものは存在しない",p:"ジョン・ケージ",o:"『Silence』（1961）所収の講演とされる。講演名は要確認",s:1},
+{t:"器は料理の着物",p:"北大路魯山人",o:"広く伝わる言葉。原典は要確認",s:1},
+{t:"暮しが仕事 仕事が暮し",p:"河井寛次郎",o:"記念館などで紹介される言葉。書名は要確認",s:1},
+{t:"芸術は長く、人生は短し",p:"坂本龍一が愛した格言",o:"新潮社の追悼記事より。もとは古代ギリシャの格言",s:2},
+{t:"知らないことばかりなんだから、飽きてる場合じゃない",p:"細野晴臣",o:"Real Soundのインタビュー見出し",s:1},
+{t:"彫刻の本質とは、私にとって、空間の知覚であり、私たちの存在の連続体である",p:"イサム・ノグチ",o:"出典の書名は要確認",s:1},
+{t:"空間に秩序を与えることは、意味を与えることだ",p:"イサム・ノグチ",o:"要約に近い言い回し。出典は要確認",s:1},
+{t:"僕にとって創作こそ遊びだと思います",p:"坂本龍一",o:"ブログでの紹介。元のインタビューは要確認",s:1},
+{t:"今できることを今やりたい。この時代のこの時期にしかできないもの",p:"細野晴臣",o:"サンレコのインタビュー（1993）。言い回しは整えてある",s:1},
+{t:"石の声が聞こえたら、ちょっとだけ手助けしてあげるんです",p:"イサム・ノグチ",o:"Pen Onlineの記事より",s:1},
+{t:"私にとって独創とは、作家が素材と直に触れ合うことだ",p:"イサム・ノグチ",o:"『A Sculptor’s World』（1968）とされる。訳は要確認",s:1}
+];
+
+const SHOW_MS=8000;   // 言葉が現れてから沈み始めるまで
+const SINK_MS=3600;   // 沈んで消えるまで
+
+const $=id=>document.getElementById(id);
+const art=$("art"),q=$("q"),meta=$("meta"),hint=$("hint");
+const d=new Date(),pad=n=>String(n).padStart(2,"0");
+$("date").textContent=d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate());
+
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let cur=-1,busy=false;
+const after=(ms,fn)=>setTimeout(fn,ms);
+
+/* 水面: 触れた波紋 + 待機中のかすかな波紋と、湧き水の泡 */
+const c=$("c"),x=c.getContext("2d"),R=[],B=[];
+let W,H,col="#202123",colT=0;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const springs=[]; // 湧き水の場所（3か所）。開くたびに変わる
+let nextR=performance.now()+700,nextB=performance.now()+300;
+function size(){const D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}
+// 中央の「水面に触れる」と、泡が昇る範囲には湧かせない
+function inZone(px,py){const cy=H/2+20;return Math.abs(px-W/2)<130&&py>cy-70&&py<cy+140}
+function farEnough(px,py,skip){return springs.every((s,i)=>i===skip||Math.hypot(s.fx*W-px,s.fy*H-py)>Math.min(W,H)*.22)}
+function pick(i){
+  for(let k=0;k<60;k++){
+    const fx=rnd(.1,.9),fy=rnd(.2,.88),px=fx*W,py=fy*H;
+    if(!inZone(px,py)&&farEnough(px,py,i)){springs[i]={fx,fy};return}
+  }
+  springs[i]={fx:[.15,.85,.5][i],fy:[.8,.78,.9][i]};
+}
+size();
+for(let i=0;i<3;i++)pick(i);
+addEventListener("resize",()=>{size();springs.forEach((s,i)=>{if(inZone(s.fx*W,s.fy*H))pick(i)})});
+function ripple(px,py,n,o){
+  if(reduce)return;
+  o=o||{};
+  const t=performance.now();
+  for(let i=0;i<(n||4);i++)R.push({x:px,y:py,t:t+i*(o.gap||240),m:o.m||Math.hypot(W,H)*.5,d:o.d||3600,a:o.a||.42});
+}
+function bubble(now){
+  const s=springs[(Math.random()*3)|0],sx=W*s.fx,sy=H*s.fy;
+  B.push({x:sx+rnd(-9,9),y:sy+rnd(-4,4),r:rnd(1.6,3.8),rise:rnd(26,70),t:now,d:rnd(3200,5600),ph:rnd(0,6.28)});
+  if(Math.random()<.5)ripple(sx,sy,1,{m:rnd(18,30),d:2400,a:.1});
+}
+function frame(now){
+  x.clearRect(0,0,W,H);
+  if(now-colT>500){col=getComputedStyle(document.documentElement).getPropertyValue("--line").trim()||"#202123";colT=now}
+  // 言葉が出ているあいだは、水面を静かにする
+  if(!busy&&!document.hidden){
+    if(now>nextR){ripple(rnd(W*.08,W*.92),rnd(H*.15,H*.9),2,{m:rnd(70,150),d:rnd(3200,4600),a:.16,gap:380});nextR=now+rnd(2600,6400)}
+    if(now>nextB){bubble(now);nextB=now+rnd(450,1500)}
+  }
+  x.strokeStyle=col;x.fillStyle=col;x.lineWidth=1;
+  for(let i=R.length-1;i>=0;i--){
+    const r=R[i],a=(now-r.t)/r.d;
+    if(a>=1){R.splice(i,1);continue}
+    if(a<0)continue;
+    const e=1-Math.pow(1-a,3);
+    x.globalAlpha=Math.pow(1-a,2)*r.a;
+    x.beginPath();x.arc(r.x,r.y,e*r.m,0,6.2832);x.stroke();
+  }
+  for(let i=B.length-1;i>=0;i--){
+    const b=B[i],a=(now-b.t)/b.d;
+    const px=b.x+Math.sin(a*6+b.ph)*3,py=b.y-a*b.rise;
+    if(a>=1){ripple(px,py,1,{m:rnd(14,26),d:2200,a:.14});B.splice(i,1);continue}
+    const env=Math.min(1,a*6)*Math.min(1,(1-a)*3);
+    x.globalAlpha=env*.5;x.beginPath();x.arc(px,py,b.r,0,6.2832);x.stroke();
+    x.globalAlpha=env*.4;x.beginPath();x.arc(px-b.r*.35,py-b.r*.35,Math.max(.5,b.r*.2),0,6.2832);x.fill();
+  }
+  x.globalAlpha=1;
+  requestAnimationFrame(frame);
+}
+if(!reduce)requestAnimationFrame(frame);
+
+/* 言葉 */
+function fill(i){
+  const o=Q[i];cur=i;
+  q.textContent=o.t;
+  $("who").textContent=o.p;
+  $("src").textContent=o.o;
+  const cf=$("cf");cf.hidden=o.s===2; // 「高」は表示しない
+  cf.innerHTML=o.s===2?"":'<b class="'+["lo","mid"][o.s]+'"></b>確からしさ '+["低","中"][o.s];
+}
+// 現れる場所は毎回ちがう
+function place(){
+  const w=art.offsetWidth,h=art.offsetHeight,mx=Math.max(20,W*.06),top0=72,bot=48;
+  art.style.left=(mx+Math.random()*Math.max(0,W-w-mx*2))+"px";
+  art.style.top=(top0+Math.random()*Math.max(0,H-h-top0-bot))+"px";
+}
+function sink(){
+  const r=art.getBoundingClientRect();
+  ripple(r.left+r.width/2,r.top+r.height/2,1);
+  art.classList.add("sink");
+  after(reduce?1200:SINK_MS,()=>{
+    art.classList.remove("sink");
+    q.classList.remove("on");meta.classList.remove("on");
+    art.style.visibility="hidden";
+    hint.classList.remove("off");
+    busy=false;
+  });
+}
+
+/* 全部出し切るまで同じ言葉は出ない（シャッフルした袋から引く。次に開いたときも続きから） */
+let bag=[];
+try{
+  const s=JSON.parse(localStorage.getItem("cq2-bag")||"{}");
+  if(Array.isArray(s.b))bag=s.b.filter(n=>Number.isInteger(n)&&n>=0&&n<Q.length);
+  if(Number.isInteger(s.l)&&s.l>=0&&s.l<Q.length)cur=s.l;
+}catch(e){}
+function nextIdx(){
+  if(!bag.length){
+    bag=Q.map((_,k)=>k);
+    for(let k=bag.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[bag[k],bag[j]]=[bag[j],bag[k]]}
+    // 袋の切れ目で、直前と同じ言葉が続かないように
+    if(bag.length>1&&bag[bag.length-1]===cur)[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]];
+  }
+  const i=bag.pop();
+  try{localStorage.setItem("cq2-bag",JSON.stringify({b:bag,l:i}))}catch(e){}
+  return i;
+}
+
+/* 操作: 一期一会。触れるたびに、新しい言葉が出会いにくる */
+function touch(px,py){
+  ripple(px,py);
+  if(busy)return;
+  busy=true;hint.classList.add("off");
+  const i=nextIdx();
+  after(reduce?200:1500,()=>{
+    fill(i);place();accent(true);
+    art.style.visibility="visible";
+    q.classList.add("on");meta.classList.add("on");
+    after(SHOW_MS,sink);
+  });
+}
+addEventListener("pointerdown",e=>touch(e.clientX,e.clientY));
+addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();touch(W/2,H*.45)}
+});
+/* 中心の点の色: 開いたときと、言葉が現れるたびに4色からランダムに変わる（テラコッタ／ブルーグレー／グリーングレー／パープルグレー） */
+const ACC=[["#b9654b","#d98a70"],["#4f86a8","#7fb0cc"],["#5f9a76","#8fbf9c"],["#7a6aa3","#a798cc"]];
+let ai=-1;
+function isDark(){const t=document.documentElement.getAttribute("data-theme");return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches}
+function accent(next){
+  if(next){let i;do{i=Math.floor(Math.random()*ACC.length)}while(i===ai);ai=i}
+  document.documentElement.style.setProperty("--accent",ACC[ai][isDark()?1:0]);
+}
+accent(true);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>accent());
+</script>
+</body>
+</html>
