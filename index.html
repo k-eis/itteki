@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>itteki｜クリエイターの言葉</title>
+<title>itteki｜クリエイター編</title>
 <style>
 /* ラムスの10か条に沿う: 有用 / 理解しやすい / 控えめ / 誠実 / 細部まで / 可能な限り少なく */
 :root{--bg:#e3e4e1;--ink:#202123;--sub:#7d7e7a;--line:#202123;--accent:#e8541a;
@@ -21,6 +21,21 @@ header{display:flex;justify-content:space-between;font-size:12px;letter-spacing:
 .hint i{width:12px;height:12px;border-radius:50%;background:var(--accent);display:block}
 .hint span{font-size:12px;letter-spacing:.12em;color:var(--sub)}
 .hint.off{opacity:0}
+.foot{position:fixed;left:8vw;right:8vw;bottom:calc(10px + env(safe-area-inset-bottom,0px));margin:0;font-size:10px;letter-spacing:.06em;line-height:1.6;color:var(--sub);transition:opacity 1.2s ease}
+main.pre .foot{opacity:0}
+.meta[hidden]{display:none}
+main.pre header,main.pre .hint{opacity:0}
+main header{transition:opacity 1.2s ease}
+#intro{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;text-align:center;transition:opacity .9s ease}
+#intro.out{opacity:0;pointer-events:none}
+#intro .box{transform:translateY(-9vh);opacity:0;transition:opacity 1.3s ease}
+#intro.in .box{opacity:1}
+#intro.in.fade .box{opacity:0;transition-duration:1s}
+#intro h1{margin:0;font-weight:300;font-size:clamp(28px,8.4vw,46px);letter-spacing:.5em;padding-left:.5em}
+#intro p{margin:1.6em 0 0;font-size:12px;letter-spacing:.32em;padding-left:.32em;color:var(--sub)}
+#drop{display:block;position:absolute;left:50%;top:58%;width:10px;height:14px;margin:-7px 0 0 -5px;border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:var(--accent);opacity:0}
+article.note{font-size:clamp(15px,4.2vw,20px)}
+article.note #q{white-space:pre-line;line-height:1.9}
 article{position:fixed;left:0;top:0;visibility:hidden;width:max-content;max-width:min(22em,84vw);
   font-size:clamp(20px,5.4vw,32px);pointer-events:none}
 #q{margin:0;font-size:1em;font-weight:300;line-height:1.75;letter-spacing:.04em;
@@ -28,10 +43,7 @@ article{position:fixed;left:0;top:0;visibility:hidden;width:max-content;max-widt
 .meta{margin-top:1.6em;display:grid;gap:.45em;font-size:16px}
 .meta p{margin:0}
 #who{font-size:14px;letter-spacing:.06em}
-#src,#cf{font-size:12px;letter-spacing:.06em;color:var(--sub);line-height:1.6}
-#cf b{display:inline-block;width:7px;height:7px;margin-right:.7em;border:1px solid var(--sub);box-sizing:border-box;vertical-align:.05em}
-#cf b.hi{background:var(--sub)}
-#cf b.mid{background:linear-gradient(to top,var(--sub) 50%,transparent 50%)}
+#src{font-size:12px;letter-spacing:.06em;color:var(--sub);line-height:1.6}
 .fade{opacity:0;transition:opacity 1.6s cubic-bezier(.2,.6,.2,1)}
 .meta.fade{transition-delay:.5s}
 .fade.on{opacity:1}
@@ -44,47 +56,48 @@ article.sink{animation:sink 3.6s cubic-bezier(.45,0,.85,.4) forwards}
 </head>
 <body>
 <canvas id="c" aria-hidden="true"></canvas>
-<main>
+<main class="pre">
   <header><span>itteki</span><span id="date"></span></header>
   <div class="hint" id="hint"><i></i><span>水面に触れる</span></div>
+  <p class="foot">言葉の著作権は各権利者に帰属します。出典を明記しています。</p>
 </main>
+<div id="intro" aria-hidden="true"><div class="box"><h1>いってき</h1><p>今日の言葉｜クリエイター編</p></div><i id="drop"></i></div>
 <article id="art" aria-live="polite">
   <p id="q" class="fade"></p>
   <div class="meta fade" id="meta">
     <p id="who"></p>
     <p id="src"></p>
-    <p id="cf"></p>
   </div>
 </article>
 <script>
-// s: 2 = 出典の確からしさ「高」 / 1 = 「中」(原典での確認が必要) / 0 = 「低」
 const Q=[
-{t:"形態は、つねに機能に従う",p:"ルイス・サリヴァン",o:"『The Tall Office Building Artistically Considered』（1896）",s:2},
-{t:"良いデザインとは、できる限りデザインしないこと",p:"ディーター・ラムス",o:"「良いデザインの10か条」",s:2},
-{t:"少ないほうが豊かである",p:"ミース・ファン・デル・ローエ",o:"出典は要確認",s:1},
-{t:"レンガに聞いてみる。何になりたい？ レンガは「アーチがいい」と答える",p:"ルイス・カーン",o:"講演での言葉とされる",s:1},
-{t:"複雑にするのは簡単だ。単純にするのは難しい",p:"ブルーノ・ムナーリ",o:"著作は要確認",s:1},
-{t:"ディテールはディテールではない。それが製品をつくる",p:"チャールズ・イームズ",o:"インタビューでの発言とされる",s:1},
-{t:"単純さは目的ではない。だが事物の本質に近づけば、人は自然と単純さに行き着く",p:"コンスタンティン・ブランクーシ",o:"出典は要確認",s:1},
-{t:"デザインとは、生活を豊かにする知恵と、それを形にしたもの",p:"深澤直人",o:"イベントへのメッセージ（要確認）",s:0},
-{t:"芸術は、見えるものを写すのではない。見えるようにするのだ",p:"パウル・クレー",o:"「創造的信条」（1920）",s:2},
-{t:"私は、どんな空っぽの空間でも、裸の舞台と呼ぶことができる",p:"ピーター・ブルック",o:"『何もない空間』（1968）の冒頭",s:2},
-{t:"秘すれば花なり",p:"世阿弥",o:"『風姿花伝』",s:2},
-{t:"間違いを、隠された意図として敬え",p:"ブライアン・イーノ＆ピーター・シュミット",o:"『Oblique Strategies』（1975）の1枚",s:2},
-{t:"沈黙というものは存在しない",p:"ジョン・ケージ",o:"『Silence』（1961）所収の講演とされる。講演名は要確認",s:1},
-{t:"器は料理の着物",p:"北大路魯山人",o:"広く伝わる言葉。原典は要確認",s:1},
-{t:"暮しが仕事 仕事が暮し",p:"河井寛次郎",o:"記念館などで紹介される言葉。書名は要確認",s:1},
-{t:"芸術は長く、人生は短し",p:"坂本龍一が愛した格言",o:"新潮社の追悼記事より。もとは古代ギリシャの格言",s:2},
-{t:"知らないことばかりなんだから、飽きてる場合じゃない",p:"細野晴臣",o:"Real Soundのインタビュー見出し",s:1},
-{t:"彫刻の本質とは、私にとって、空間の知覚であり、私たちの存在の連続体である",p:"イサム・ノグチ",o:"出典の書名は要確認",s:1},
-{t:"空間に秩序を与えることは、意味を与えることだ",p:"イサム・ノグチ",o:"要約に近い言い回し。出典は要確認",s:1},
-{t:"僕にとって創作こそ遊びだと思います",p:"坂本龍一",o:"ブログでの紹介。元のインタビューは要確認",s:1},
-{t:"今できることを今やりたい。この時代のこの時期にしかできないもの",p:"細野晴臣",o:"サンレコのインタビュー（1993）。言い回しは整えてある",s:1},
-{t:"石の声が聞こえたら、ちょっとだけ手助けしてあげるんです",p:"イサム・ノグチ",o:"Pen Onlineの記事より",s:1},
-{t:"私にとって独創とは、作家が素材と直に触れ合うことだ",p:"イサム・ノグチ",o:"『A Sculptor’s World』（1968）とされる。訳は要確認",s:1}
+{t:"形態は、つねに機能に従う",p:"ルイス・サリヴァン",o:"『The Tall Office Building Artistically Considered』（1896）"},
+{t:"良いデザインとは、できる限りデザインしないこと",p:"ディーター・ラムス",o:"「良いデザインの10か条」"},
+{t:"少ないほうが豊かである",p:"ミース・ファン・デル・ローエ",o:"ミースの信条として紹介（P・ジョンソン『Mies van der Rohe』1947）。言葉自体はブラウニングの詩（1855）が先"},
+{t:"レンガに「何がほしい？」と聞く。レンガは「アーチがいい」と言う。「僕もアーチはほしいけど、高くつくから、コンクリートの梁で済ませたい」と話しても、レンガは「アーチがいい」と言う",p:"ルイス・カーン",o:"『What Will Be Has Always Been: The Words of Louis I. Kahn』（R・S・ワーマン編、Rizzoli、1986）"},
+{t:"複雑にするのは簡単だ。単純にするのは難しい。単純にするには、引かなければならない。そして引くには、何を引くべきかを知っていなければならない",p:"ブルーノ・ムナーリ",o:"『Verbale scritto』（Il Melangolo、1992。のちにCorraini版）"},
+{t:"ディテールは、ただの細部ではない。ディテールが製品をつくる",p:"チャールズ・イームズ",o:"製品紹介映像『ECS』（Eames Contract Storage、1961）より"},
+{t:"デザインは芸術作品ではありません。人間が日々をより丁寧に、豊かに生きていくための、一つの道具なのです。",p:"深澤直人",o:"機関誌Works（リクルートワークス研究所、2016）"},
+{t:"芸術において、単純さは目的ではない。事物の本当の意味に入り込んでいけば、人は意図せず、単純さにたどり着く",p:"コンスタンティン・ブランクーシ",o:"『Propos』（Brummer Gallery 展覧会カタログ、1926）とされる"},
+{t:"芸術は、見えるものを写すのではない。見えるようにするのだ",p:"パウル・クレー",o:"「創造的信条」（1920）"},
+{t:"私は、どんな空っぽの空間でも、裸の舞台と呼ぶことができる",p:"ピーター・ブルック",o:"『何もない空間』（1968）の冒頭"},
+{t:"秘すれば花なり",p:"世阿弥",o:"『風姿花伝』"},
+{t:"間違いを、隠された意図として敬え",p:"ブライアン・イーノ／ピーター・シュミット",o:"カードセット『Oblique Strategies』（1975）"},
+{t:"沈黙というものは存在しない。何かが常に起きていて、音を立てている",p:"ジョン・ケージ",o:"『Silence』（1961）所収『45′ for a Speaker』"},
+{t:"着物なしでは人間が生活できないように、料理も食器なしでは独立することはできません。そう言えば、食器は料理の着物だと言えましょう",p:"北大路魯山人",o:"『近作鉢の会に一言』より"},
+{t:"暮しが仕事 仕事が暮し",p:"河井寛次郎",o:"『いのちの窓』（西村書店、1948）"},
+{t:"芸術は長く、人生は短し",p:"坂本龍一が愛した格言",o:"新潮社の追悼記事より。もとは古代ギリシャの格言"},
+{t:"子供の砂遊びみたいに、何を作ろうとイメージするのではなく、いじっているうちに形になっていく。それが創作であり、僕にとって創作こそ遊びだと思います",p:"坂本龍一",o:"『POP SKMT（デモ・テープ2）』（妙音講、2022）"},
+{t:"40代の頃に「もうすべて聴いてしまった」「飽き飽きした」と思っていた時期があったけど、それは間違いだったんです。知らないことばかりなんだから、飽きてる場合じゃない",p:"細野晴臣",o:"Real Sound（2017年11月8日）"},
+{t:"今できることを今やりたい。この時代のこの時期にしかできないもの",p:"細野晴臣",o:"サウンド＆レコーディング・マガジン（1993年4月号）"},
+{t:"彫刻の本質とは、私にとって、空間の知覚であり、私たちの存在の連続体である",p:"イサム・ノグチ",o:"『A Sculptor’s World』（1968）"},
+{t:"空間に秩序を与え、生命を吹き込み、意味を与えるのが彫刻家なのだ",p:"イサム・ノグチ",o:"『Fourteen Americans』（ニューヨーク近代美術館、1946）"},
+{t:"私にとって独創とは、作家が素材と直に触れ合うこと。大地に触れることこそが、現代の人工性や、工業製品への依存から、作家を解き放つのだ",p:"イサム・ノグチ",o:"『A Sculptor’s World』（1968）とされる"}
 ];
 
 const SHOW_MS=8000;   // 言葉が現れてから沈み始めるまで
+// 40字までは8秒。それ以上は、10字ごとに1秒ずつ延ばす
+const showMs=t=>SHOW_MS+Math.max(0,Math.ceil(([...t].length-40)/10))*1000;
 const SINK_MS=3600;   // 沈んで消えるまで
 
 const $=id=>document.getElementById(id);
@@ -163,12 +176,10 @@ function fill(i){
   q.textContent=o.t;
   $("who").textContent=o.p;
   $("src").textContent=o.o;
-  const cf=$("cf");cf.hidden=o.s===2; // 「高」は表示しない
-  cf.innerHTML=o.s===2?"":'<b class="'+["lo","mid"][o.s]+'"></b>確からしさ '+["低","中"][o.s];
 }
 // 現れる場所は毎回ちがう
 function place(){
-  const w=art.offsetWidth,h=art.offsetHeight,mx=Math.max(20,W*.06),top0=72,bot=48;
+  const w=art.offsetWidth,h=art.offsetHeight,mx=Math.max(20,W*.06),top0=72,bot=64;
   art.style.left=(mx+Math.random()*Math.max(0,W-w-mx*2))+"px";
   art.style.top=(top0+Math.random()*Math.max(0,H-h-top0-bot))+"px";
 }
@@ -177,10 +188,10 @@ function sink(){
   ripple(r.left+r.width/2,r.top+r.height/2,1);
   art.classList.add("sink");
   after(reduce?1200:SINK_MS,()=>{
-    art.classList.remove("sink");
+    art.classList.remove("sink","note");meta.hidden=false;
     q.classList.remove("on");meta.classList.remove("on");
     art.style.visibility="hidden";
-    hint.classList.remove("off");
+    if(!locked())hint.classList.remove("off");
     busy=false;
   });
 }
@@ -188,7 +199,7 @@ function sink(){
 /* 全部出し切るまで同じ言葉は出ない（シャッフルした袋から引く。次に開いたときも続きから） */
 let bag=[];
 try{
-  const s=JSON.parse(localStorage.getItem("cq2-bag")||"{}");
+  const s=JSON.parse(localStorage.getItem("it-bag")||"{}");
   if(Array.isArray(s.b))bag=s.b.filter(n=>Number.isInteger(n)&&n>=0&&n<Q.length);
   if(Number.isInteger(s.l)&&s.l>=0&&s.l<Q.length)cur=s.l;
 }catch(e){}
@@ -200,21 +211,40 @@ function nextIdx(){
     if(bag.length>1&&bag[bag.length-1]===cur)[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]];
   }
   const i=bag.pop();
-  try{localStorage.setItem("cq2-bag",JSON.stringify({b:bag,l:i}))}catch(e){}
+  try{localStorage.setItem("it-bag",JSON.stringify({b:bag,l:i}))}catch(e){}
   return i;
+}
+
+/* 一日一回: 言葉との出会いは、日付が変わる（0時）までに1回。 */
+const FREE=false,DAY="it-day",NOTE_MS=6000;
+function today(){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function nowDay(){const n=new Date();return n.getFullYear()+"-"+pad(n.getMonth()+1)+"-"+pad(n.getDate())}
+function locked(){if(FREE)return false;try{return localStorage.getItem(DAY)===nowDay()}catch(e){return false}}
+function markDrawn(){try{localStorage.setItem(DAY,nowDay())}catch(e){}}
+function showNote(){
+  busy=true;
+  after(reduce?200:700,()=>{
+    q.textContent="言葉との出会いは、一日一回です。\n0時以降に、次の言葉と出会えます。";
+    meta.hidden=true;art.classList.add("note");place();
+    art.style.visibility="visible";
+    q.classList.add("on");
+    after(NOTE_MS,sink);
+  });
 }
 
 /* 操作: 一期一会。触れるたびに、新しい言葉が出会いにくる */
 function touch(px,py){
+  if(introOn)return;
   ripple(px,py);
   if(busy)return;
+  if(locked()){showNote();return}
   busy=true;hint.classList.add("off");
-  const i=nextIdx();
+  const i=nextIdx();markDrawn();
   after(reduce?200:1500,()=>{
     fill(i);place();accent(true);
     art.style.visibility="visible";
     q.classList.add("on");meta.classList.add("on");
-    after(SHOW_MS,sink);
+    after(showMs(Q[i].t),sink);
   });
 }
 addEventListener("pointerdown",e=>touch(e.clientX,e.clientY));
@@ -231,6 +261,41 @@ function accent(next){
 }
 accent(true);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>accent());
+if(locked())hint.classList.add("off");
+
+/* オープニング: いってき → 一滴が落ちて波紋 → 本画面（タップでスキップ） */
+let introOn=true;
+(function(){
+  const intro=$("intro"),drop=$("drop"),mainEl=document.querySelector("main");
+  let done=false,anim=null;
+  busy=true;
+  function end(){
+    if(done)return;done=true;
+    if(anim)anim.cancel();
+    intro.classList.add("out");
+    mainEl.classList.remove("pre");
+    after(900,()=>{intro.remove();introOn=false;busy=false});
+  }
+  intro.addEventListener("pointerdown",end);
+  after(300,()=>intro.classList.add("in"));
+  if(reduce){after(2200,end);return}
+  after(1900,()=>{
+    if(done)return;
+    anim=drop.animate([
+      {transform:"translateY("+(-H*.55)+"px) scaleY(1.5)",opacity:0},
+      {opacity:1,offset:.14},
+      {transform:"translateY(0) scaleY(1.2)",opacity:1}
+    ],{duration:900,easing:"cubic-bezier(.55,0,.9,.55)",fill:"forwards"});
+  });
+  after(2800,()=>{
+    if(done)return;
+    if(anim)anim.cancel();
+    drop.style.opacity=0;
+    ripple(W/2,H*.58,5,{m:Math.max(W,H)*.6,d:4800,a:.5,gap:320});
+  });
+  after(3700,()=>{if(!done)intro.classList.add("fade")});
+  after(4600,end);
+})();
 </script>
 </body>
 </html>
