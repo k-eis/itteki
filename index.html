@@ -22,7 +22,9 @@ header{display:flex;justify-content:space-between;font-size:12px;letter-spacing:
 .hint span{font-size:12px;letter-spacing:.12em;color:var(--sub)}
 .hint.off{opacity:0}
 .foot{position:fixed;left:8vw;right:8vw;bottom:calc(10px + env(safe-area-inset-bottom,0px));margin:0;font-size:10px;letter-spacing:.06em;line-height:1.6;color:var(--sub);transition:opacity 1.2s ease}
-main.pre .foot{opacity:0}
+.foot{opacity:0;transition-delay:.5s}
+.foot.on{opacity:1}
+.foot.sink{animation:sink 3.6s cubic-bezier(.45,0,.85,.4) forwards}
 .meta[hidden]{display:none}
 main.pre header,main.pre .hint{opacity:0}
 main header{transition:opacity 1.2s ease}
@@ -51,7 +53,7 @@ article{position:fixed;left:0;top:0;visibility:hidden;width:max-content;max-widt
 @keyframes sink{0%{opacity:1;transform:translateY(0);filter:blur(0)}100%{opacity:0;transform:translateY(30px);filter:blur(9px)}}
 @keyframes soft{to{opacity:0}}
 article.sink{animation:sink 3.6s cubic-bezier(.45,0,.85,.4) forwards}
-@media (prefers-reduced-motion:reduce){.fade,.hint{transition:none}.meta.fade{transition-delay:0s}article.sink{animation:soft 1.2s forwards}}
+@media (prefers-reduced-motion:reduce){.fade,.hint{transition:none}.meta.fade{transition-delay:0s}article.sink,.foot.sink{animation:soft 1.2s forwards}}
 </style>
 </head>
 <body>
@@ -59,7 +61,7 @@ article.sink{animation:sink 3.6s cubic-bezier(.45,0,.85,.4) forwards}
 <main class="pre">
   <header><span>itteki</span><span id="date"></span></header>
   <div class="hint" id="hint"><i></i><span>水面に触れる</span></div>
-  <p class="foot">言葉の著作権は各権利者に帰属します。出典を明記しています。</p>
+  <p class="foot">言葉の著作権は各権利者に帰属します。</p>
 </main>
 <div id="intro" aria-hidden="true"><div class="box"><h1>いってき</h1><p>今日の言葉｜クリエイター編</p></div><i id="drop"></i></div>
 <article id="art" aria-live="polite">
@@ -101,7 +103,7 @@ const showMs=t=>SHOW_MS+Math.max(0,Math.ceil(([...t].length-40)/10))*1000;
 const SINK_MS=3600;   // 沈んで消えるまで
 
 const $=id=>document.getElementById(id);
-const art=$("art"),q=$("q"),meta=$("meta"),hint=$("hint");
+const art=$("art"),q=$("q"),meta=$("meta"),hint=$("hint"),foot=document.querySelector(".foot");
 const d=new Date(),pad=n=>String(n).padStart(2,"0");
 $("date").textContent=d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate());
 
@@ -187,8 +189,9 @@ function sink(){
   const r=art.getBoundingClientRect();
   ripple(r.left+r.width/2,r.top+r.height/2,1);
   art.classList.add("sink");
+  if(foot.classList.contains("on"))foot.classList.add("sink");
   after(reduce?1200:SINK_MS,()=>{
-    art.classList.remove("sink","note");meta.hidden=false;
+    art.classList.remove("sink","note");meta.hidden=false;foot.classList.remove("sink","on");
     q.classList.remove("on");meta.classList.remove("on");
     art.style.visibility="hidden";
     if(!locked())hint.classList.remove("off");
@@ -243,7 +246,7 @@ function touch(px,py){
   after(reduce?200:1500,()=>{
     fill(i);place();accent(true);
     art.style.visibility="visible";
-    q.classList.add("on");meta.classList.add("on");
+    q.classList.add("on");meta.classList.add("on");foot.classList.add("on");
     after(showMs(Q[i].t),sink);
   });
 }
